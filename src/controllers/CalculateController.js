@@ -13,7 +13,11 @@ module.exports = {
                 return Number(item); // Convertendo para Number
             });
             if (values.includes(NaN)) {
-                return response.status(400).send(['Valores inválidos']);
+                return response.status(400).json({
+                    content: null,
+                    errors: ['Valores inválidos'],
+                    statusCode: 400
+                });
             }
             values.sort(
                 (comparingA, comparingB) => {
@@ -50,6 +54,7 @@ module.exports = {
         }
 
         if (isContinue) {
+            values = values.map(item => Number(item));
             let amplitude =
                 values[values.length - 1] - values[0] + 1;
             const k = parseInt(Math.sqrt(total));
@@ -105,7 +110,7 @@ module.exports = {
                 } else {
                     rows.push(createData(`${breakPoints[i - 1]} - ${breakPoints[i]}`));
                 }
-                rows[i].simpleFrequency = filtredValues[i].length // Show simple Frequency
+                rows[i].simpleFrequency = filtredValues[i].length; // Show simple Frequency
                 rows[i].relativeFrequency = (filtredValues[i].length / total) * 100;
                 if (i === 0) {
                     rows[i].accumulatedFrequency = rows[i].simpleFrequency; // Startpoint of accumulator
@@ -169,7 +174,6 @@ module.exports = {
         }
 
         return response.json({
-            arrayFormatted: values,
             total: total,
             rows: rows
         });
