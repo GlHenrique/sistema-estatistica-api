@@ -173,9 +173,59 @@ module.exports = {
             }
         }
 
+        let media;
+        let moda = [];
+        let mediana;
+
+        if (analyze === 'qualitative') {
+            media = 'Não existe para varáveis qualitativas.';
+            let posModa = rows.map(row => row.simpleFrequency);
+            posModa = posModa.sort((a, b) => a - b);
+            posModa = posModa[posModa.length - 1];
+            rows.map(row => {
+                if (row.simpleFrequency === posModa) {
+                    moda.push(row.variableName[0]);
+                }
+            });
+            if (moda.length === rows.length) {
+                moda = [];
+            };
+
+            let posMediana = total / 2;
+            mediana = values[posMediana - 1];
+        }
+
+        if (analyze === 'discreteQuantitative') {
+            let xi = rows.map(row => row.variableName[0]);
+            let fi = rows.map(row => row.simpleFrequency);
+            let acumulador = [];
+            for (let i = 0; i < xi.length; i++) {
+                acumulador.push(Number(fi[i] * xi[i]));
+            }
+            let somaTotal = acumulador.reduce((total, acumulador) => total + acumulador, 0);
+            media = somaTotal / total;
+            let posModa = rows.map(row => row.simpleFrequency);
+            posModa = posModa.sort((a, b) => a - b);
+            posModa = posModa[posModa.length - 1];
+            rows.map(row => {
+                if (row.simpleFrequency === posModa) {
+                    moda.push(row.variableName[0]);
+                }
+            });
+            if (moda.length === rows.length) {
+                moda = [];
+            };
+
+            let posMediana = total / 2;
+            mediana = values[posMediana - 1];
+        }
+
         return response.json({
             total: total,
-            rows: rows
+            rows: rows,
+            media,
+            moda,
+            mediana
         });
     }
 };
