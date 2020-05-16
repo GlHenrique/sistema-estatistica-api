@@ -8,6 +8,8 @@ module.exports = {
             values,
             isContinue,
         } = request.body;
+        let valoresOrdenados = values;
+        valoresOrdenados = valoresOrdenados.sort((a, b) => a - b);
         if (analyze === 'discreteQuantitative') {
             values = values.map(item => {
                 return Number(item); // Convertendo para Number
@@ -55,6 +57,7 @@ module.exports = {
 
         if (isContinue) {
             values = values.map(item => Number(item));
+            values = values.sort((a, b) => a - b);
             let amplitude =
                 values[values.length - 1] - values[0] + 1;
             const k = parseInt(Math.sqrt(total));
@@ -218,6 +221,57 @@ module.exports = {
 
             let posMediana = total / 2;
             mediana = values[posMediana - 1];
+        }
+
+        if (isContinue) {
+            let pontosMedios = rows.map(row => row.variableName.split('-'));
+            pontosMedios = pontosMedios.map(item => (Number(item[0]) + Number(item[1])) / 2);
+            let fi = rows.map(row => row.simpleFrequency);
+            let acumulador = [];
+            for (let i = 0; i < pontosMedios.length; i++) {
+                acumulador.push(Number(fi[i] * pontosMedios[i]));
+            }
+            let somaTotal = acumulador.reduce((total, acumulador) => total + acumulador, 0);
+            media = (somaTotal / total).toFixed(2);
+            let posModa = rows.map(row => row.simpleFrequency);
+            posModa = posModa.sort((a, b) => a - b);
+            posModa = posModa[posModa.length - 1];
+            rows.map(row => {
+                if (row.simpleFrequency === posModa) {
+                    let intervalos = row.variableName.split('-');
+                    intervalos = intervalos.map(item => Number(item));
+                    let somaTotal = intervalos.reduce((total, intervalos) => total + intervalos, 0);
+                    moda.push(Math.round(somaTotal / 2));
+                }
+            });
+            const posMediana = total / 2;
+            let valorMediana = valoresOrdenados[posMediana - 1];
+            let menorValorReal;
+            let maiorValorReal;
+            let linhaMediana = rows.map((row) => {
+                let menorValor = row.variableName.split('-');
+                menorValor = menorValor[0];
+                let maiorValor = row.variableName.split('-');
+                maiorValor = maiorValor[1];
+                menorValor = Number(menorValor);
+                maiorValor = Number(maiorValor);
+                if (valorMediana >= menorValor && valorMediana < maiorValor) {
+                    maiorValorReal = maiorValor;
+                    menorValorReal = menorValor
+                    return row;
+                }
+            });
+            let posFant;
+            for (let i = 0; i < linhaMediana.length; i++) {
+                if (linhaMediana[i]) {
+                    posFant = i - 1;
+                }
+            };
+            let fant = rows[posFant].accumulatedFrequency;
+            linhaMediana = linhaMediana.filter(item => item);
+            let fimd = linhaMediana[0].simpleFrequency;
+            const altura = maiorValorReal - menorValorReal;
+            mediana = menorValorReal + ((posMediana - fant) / fimd) * altura;
         }
 
         return response.json({
