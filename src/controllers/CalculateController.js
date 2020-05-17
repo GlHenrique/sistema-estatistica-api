@@ -281,5 +281,8 @@ module.exports = {
             moda,
             mediana
         });
+    },
+    async ping(req, res) {
+        return res.json('API OK');
     }
 };
