@@ -27,11 +27,6 @@ module.exports = {
                 }
             ); // Organizando do menor para o maior
         }
-        // if (analyze === 'qualitative' && order === 'false') {
-        //     return response.json({
-        //         arrayFormatted: values
-        //     })
-        // }
         if (analyze === 'qualitative' && order === 'true') {
             values.sort();
         }
@@ -176,9 +171,9 @@ module.exports = {
             }
         }
 
-        let media;
+        let media = '';
         let moda = [];
-        let mediana;
+        let mediana = ''
 
         if (analyze === 'qualitative') {
             media = 'Não existe para varáveis qualitativas.';
@@ -220,7 +215,7 @@ module.exports = {
             };
 
             let posMediana = total / 2;
-            mediana = values[posMediana - 1];
+            mediana = valoresOrdenados[parseInt(posMediana) - 1];
         }
 
         if (isContinue) {
@@ -279,7 +274,7 @@ module.exports = {
             rows: rows,
             media,
             moda,
-            mediana
+            mediana: mediana
         });
     },
     async ping(req, res) {
