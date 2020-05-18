@@ -285,14 +285,23 @@ module.exports = {
       const altura = maiorValorReal - menorValorReal; // Constante H
       mediana = menorValorReal + ((posMediana - fant) / fimd) * altura;
     }
-
-    mediana = Math.abs(mediana.toFixed(2));
+    mediana = Math.abs(mediana).toFixed(2);
+    media = Number(media).toFixed(2);
+    let stringModa = '';
+    for (let i = 0; i < moda.length; i++) {
+      // Resposta personalizada da moda.
+      if (moda.length === 1) {
+        stringModa = moda[i];
+        break;
+      }
+      stringModa = `${stringModa + moda[i] + ', '}`;
+    }
 
     return response.json({
       total: total,
       rows: rows,
       media,
-      moda,
+      moda: stringModa,
       mediana,
     });
   },
