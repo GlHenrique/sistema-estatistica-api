@@ -50,20 +50,20 @@ module.exports = {
             };
         }
 
-        if (isContinue) {
+        if (isContinue) { // Caso seja variável contínua:
             values = values.map(item => Number(item));
             values = values.sort((a, b) => a - b);
             let amplitude =
-                values[values.length - 1] - values[0] + 1;
-            const k = parseInt(Math.sqrt(total));
-            const previousK = k - 1;
-            const successor = k + 1;
-            const arrayK = [previousK, k, successor];
-            let interval;
-            let linesCount;
+                values[values.length - 1] - values[0] + 1; // definindo a amplitude
+            const k = parseInt(Math.sqrt(total)); // constante K
+            const previousK = k - 1; // anterior de K
+            const successor = k + 1; //sucessor de K
+            const arrayK = [previousK, k, successor]; // anterior de K, K e sucessor de K
+            let interval; // intervalo
+            let linesCount; // Total de linhas
 
-            for (let i = 0; i < arrayK.length; i++) {
-                if (amplitude % arrayK[0] === 0) {
+            for (let i = 0; i < arrayK.length; i++) { // Regra de negócio para definir
+                if (amplitude % arrayK[0] === 0) { // quantidade de linhas
                     linesCount = arrayK[0];
                     interval = amplitude / arrayK[0];
                     break;
@@ -81,19 +81,17 @@ module.exports = {
                 }
             }
 
-            let minValue = values[0] + interval;
-            let breakPoints = [minValue];
+            let minValue = values[0] + interval; // Valor mínimo
+            let breakPoints = [minValue]; // As quebras para a tabela e o gráfico.
 
             for (let i = 0; i < linesCount; i++) {
-                // rows.push(values.filter(value => {return value < minValue}));
-                // rows.push([]);
                 minValue += interval;
                 if (breakPoints.length <= linesCount - 1) {
                     breakPoints.push(minValue);
                 }
             }
 
-            const filtredValues = [];
+            const filtredValues = []; // Valores filtrados
             var j = 0;
             for (let i of breakPoints) {
                 filtredValues.push(values.filter(value => value < i));
@@ -102,26 +100,25 @@ module.exports = {
             }
 
             for (let i = 0; i < filtredValues.length; i++) {
-                // rows[i].values = i
                 if (i === 0) {
-                    rows.push(createData(`${filtredValues[i][0]} - ${breakPoints[i]}`));
+                    rows.push(createData(`${filtredValues[i][0]} - ${breakPoints[i]}`)); // Criação das linhas caso seja o primeira linha
                 } else {
-                    rows.push(createData(`${breakPoints[i - 1]} - ${breakPoints[i]}`));
+                    rows.push(createData(`${breakPoints[i - 1]} - ${breakPoints[i]}`)); // Criação das demais linhas
                 }
-                rows[i].simpleFrequency = filtredValues[i].length; // Show simple Frequency
-                rows[i].relativeFrequency = (filtredValues[i].length / total) * 100;
+                rows[i].simpleFrequency = filtredValues[i].length; // Valores de frequência simples
+                rows[i].relativeFrequency = (filtredValues[i].length / total) * 100; // Valores de frequência relativa
                 if (i === 0) {
-                    rows[i].accumulatedFrequency = rows[i].simpleFrequency; // Startpoint of accumulator
+                    rows[i].accumulatedFrequency = rows[i].simpleFrequency; // Inicio do acumulador
                     rows[i].accumulatedPercentageFrequency = rows[i].relativeFrequency;
                 } else {
-                    rows[i].accumulatedFrequency = rows[i - 1].accumulatedFrequency + rows[i].simpleFrequency;
-                    rows[i].accumulatedPercentageFrequency = rows[i - 1].accumulatedPercentageFrequency + rows[i].relativeFrequency;
+                    rows[i].accumulatedFrequency = rows[i - 1].accumulatedFrequency + rows[i].simpleFrequency; // Acumulado frequência acumulada 
+                    rows[i].accumulatedPercentageFrequency = rows[i - 1].accumulatedPercentageFrequency + rows[i].relativeFrequency; // Acumulado freqûencia acumulada percentual
                 }
             }
 
         }
         if (!isContinue) {
-            const simpleFrequency = values.reduce((age, count) => {
+            const simpleFrequency = values.reduce((age, count) => { // Criação da frquência simples
                 if (!age[count]) {
                     age[count] = 1;
                 } else {
@@ -130,12 +127,12 @@ module.exports = {
                 return age;
             }, {});
 
-            const tableRow = Object.getOwnPropertyNames(simpleFrequency);
+            const tableRow = Object.getOwnPropertyNames(simpleFrequency); // Criação das linhas
 
-            let simpleFrequencyValues = Object.values(simpleFrequency);
-            let accumulatedFrequence = simpleFrequencyValues;
+            let simpleFrequencyValues = Object.values(simpleFrequency); // Valores de frquência simples
+            let accumulatedFrequence = simpleFrequencyValues; // Frquência acumulada
 
-            simpleFrequencyValues = simpleFrequencyValues.map(item => {
+            simpleFrequencyValues = simpleFrequencyValues.map(item => { // Conversão para number e formatação a 2 casas
                 return Number((item / total) * 100).toFixed(2);
             });
 
@@ -144,21 +141,21 @@ module.exports = {
                 let parseItem = Math.trunc(item);
                 let floatItem = Number((item - parseItem).toFixed(2));
                 if (floatItem >= 0.5) {
-                    return parseItem + 1;
+                    return parseItem + 1; // Regra de arredondamento
                 }
                 return parseItem; // Relative Frequency
             });
 
             for (let i of tableRow) {
-                rows.push(createData([i], simpleFrequency[i]));
+                rows.push(createData([i], simpleFrequency[i])); // Criação das linhas
             }
 
             for (let i = 0; i < simpleFrequencyValues.length; i++) {
-                rows[i].relativeFrequency = simpleFrequencyValues[i];
+                rows[i].relativeFrequency = simpleFrequencyValues[i]; // Valores de frquencia relativa
             }
 
-            accumulatedFrequence = Helper.accumulate(accumulatedFrequence);
-            let accumulatedPercentageFrequency = Helper.accumulate(simpleFrequencyValues);
+            accumulatedFrequence = Helper.accumulate(accumulatedFrequence); // Acumulador frequência acumulada
+            let accumulatedPercentageFrequency = Helper.accumulate(simpleFrequencyValues); // Acumulador frequência acumulada percentual
 
 
             for (let i = 0; i < rows.length; i++) {
@@ -166,7 +163,7 @@ module.exports = {
                 rows[i].accumulatedPercentageFrequency =
                     accumulatedPercentageFrequency[i];
                 if (rows[i].accumulatedPercentageFrequency > 100) {
-                    rows[i].accumulatedPercentageFrequency = 100;
+                    rows[i].accumulatedPercentageFrequency = 100; // Arredondamento em valores excedentes.
                 }
             }
         }
@@ -182,11 +179,11 @@ module.exports = {
             posModa = posModa[posModa.length - 1];
             rows.map(row => {
                 if (row.simpleFrequency === posModa) {
-                    moda.push(row.variableName[0]);
+                    moda.push(row.variableName[0]); // Moda p/ varáveis qualitativas
                 }
             });
             if (moda.length === rows.length) {
-                moda = [];
+                moda = []; // Caso todos os valores sejam iguais, não existe moda.
             };
 
             let posMediana = total / 2;
@@ -219,8 +216,8 @@ module.exports = {
         }
 
         if (isContinue) {
-            let pontosMedios = rows.map(row => row.variableName.split('-'));
-            pontosMedios = pontosMedios.map(item => (Number(item[0]) + Number(item[1])) / 2);
+            let pontosMedios = rows.map(row => row.variableName.split('-')); // Quebrando as strings das tabelas.
+            pontosMedios = pontosMedios.map(item => (Number(item[0]) + Number(item[1])) / 2); // Definição dos pontos médios.
             let fi = rows.map(row => row.simpleFrequency);
             let acumulador = [];
             for (let i = 0; i < pontosMedios.length; i++) {
@@ -252,12 +249,12 @@ module.exports = {
                 maiorValor = Number(maiorValor);
                 if (Number(valorMediana) >= menorValor && Number(valorMediana) < maiorValor) {
                     maiorValorReal = maiorValor;
-                    menorValorReal = menorValor;
-                    return row;
+                    menorValorReal = menorValor; 
+                    return row; // Definição da linhas real mediana.
                 }
             });
             let posFant = '';
-            linhaMediana = linhaMediana.filter(item => item);
+            linhaMediana = linhaMediana.filter(item => item); // Limpando o array, caso haja itens inválidos (undefined).
             for (let i = 0; i < linhaMediana.length; i++) {
                 if (linhaMediana[i]) {
                     if(linhaMediana.length === 1) {
@@ -268,10 +265,10 @@ module.exports = {
                     break;
                 }
             };
-            let fant = rows[posFant].accumulatedFrequency;
-            linhaMediana = linhaMediana.filter(item => item);
-            let fimd = linhaMediana[0].simpleFrequency;
-            const altura = maiorValorReal - menorValorReal;
+            let fant = rows[posFant].accumulatedFrequency; // Frquencia acumulada anterior
+            linhaMediana = linhaMediana.filter(item => item); // Limpando o array.
+            let fimd = linhaMediana[0].simpleFrequency; // Frquência FI linha mediana
+            const altura = maiorValorReal - menorValorReal; // Constante H
             mediana = menorValorReal + ((posMediana - fant) / fimd) * altura;
         }
 
@@ -280,7 +277,7 @@ module.exports = {
             rows: rows,
             media,
             moda,
-            mediana: mediana
+            mediana
         });
     },
     async ping(req, res) {
