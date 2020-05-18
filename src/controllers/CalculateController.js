@@ -286,6 +286,8 @@ module.exports = {
       mediana = menorValorReal + ((posMediana - fant) / fimd) * altura;
     }
 
+    mediana = Math.abs(mediana.toFixed(2));
+
     return response.json({
       total: total,
       rows: rows,
