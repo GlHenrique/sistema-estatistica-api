@@ -239,7 +239,7 @@ module.exports = {
                     moda.push(Math.round(somaTotal / 2));
                 }
             });
-            const posMediana = total / 2;
+            const posMediana = parseInt(total / 2);
             let valorMediana = valoresOrdenados[posMediana - 1];
             let menorValorReal;
             let maiorValorReal;
@@ -250,16 +250,22 @@ module.exports = {
                 maiorValor = maiorValor[1];
                 menorValor = Number(menorValor);
                 maiorValor = Number(maiorValor);
-                if (valorMediana >= menorValor && valorMediana < maiorValor) {
+                if (Number(valorMediana) >= menorValor && Number(valorMediana) < maiorValor) {
                     maiorValorReal = maiorValor;
-                    menorValorReal = menorValor
+                    menorValorReal = menorValor;
                     return row;
                 }
             });
-            let posFant;
+            let posFant = '';
+            linhaMediana = linhaMediana.filter(item => item);
             for (let i = 0; i < linhaMediana.length; i++) {
                 if (linhaMediana[i]) {
+                    if(linhaMediana.length === 1) {
+                    posFant = i = 0;
+                    break;
+                    }
                     posFant = i - 1;
+                    break;
                 }
             };
             let fant = rows[posFant].accumulatedFrequency;
