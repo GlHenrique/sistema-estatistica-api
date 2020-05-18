@@ -6,9 +6,4 @@ const routes = express.Router();
 routes.post('/calculate', CalculateController.calculate);
 routes.get('/ping', CalculateController.ping);
 
-
-
-
-
-
 module.exports = routes;
