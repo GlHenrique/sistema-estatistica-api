@@ -1,10 +1,11 @@
 const Helper = require('../helpers/accumulator');
+const QuickSort = require('../utils/quick-sort');
 
 module.exports = {
   async calculate(request, response) {
     let { analyze, order, values, isContinue } = request.body;
-    let valoresOrdenados = values;
-    valoresOrdenados = valoresOrdenados.sort((a, b) => a - b);
+    const valoresOrdenados = values;
+    QuickSort.quickSort(valoresOrdenados, (a, b) => a > b);
     if (analyze === 'discreteQuantitative') {
       values = values.map((item) => {
         return Number(item); // Convertendo para Number
@@ -16,12 +17,10 @@ module.exports = {
           statusCode: 400,
         });
       }
-      values.sort((comparingA, comparingB) => {
-        return comparingA - comparingB;
-      }); // Organizando do menor para o maior
+      QuickSort.quickSort(values, (a, b) => a > b);
     }
     if (analyze === 'qualitative' && order === 'true') {
-      values.sort();
+      QuickSort.quickSort(values, (a, b) => a > b);
     }
 
     const rows = [];
@@ -173,7 +172,7 @@ module.exports = {
     let mediana = '';
 
     if (analyze === 'qualitative') {
-      media = 'Não existe para varáveis qualitativas.';
+      media = 'Não existe média para variáveis qualitativas.';
       let posModa = rows.map((row) => row.simpleFrequency);
       posModa = posModa.sort((a, b) => a - b);
       posModa = posModa[posModa.length - 1];
@@ -285,8 +284,14 @@ module.exports = {
       const altura = maiorValorReal - menorValorReal; // Constante H
       mediana = menorValorReal + ((posMediana - fant) / fimd) * altura;
     }
-    mediana = Math.abs(mediana).toFixed(2);
-    media = Number(media).toFixed(2);
+    if (mediana / 1) {
+      // Verificação se é um numero que possa ser convertido
+      mediana = Math.abs(mediana).toFixed(2);
+    }
+    if (media / 1) {
+      // Verificação se é um numero que possa ser convertido
+      media = Number(media).toFixed(2);
+    }
     let stringModa = '';
     for (let i = 0; i < moda.length; i++) {
       // Resposta personalizada da moda.
@@ -296,6 +301,13 @@ module.exports = {
       }
       stringModa = `${stringModa + moda[i] + ', '}`;
     }
+
+    rows.forEach((row) => {
+      row.relativeFrequency = Number(row.relativeFrequency.toFixed(2));
+      row.accumulatedPercentageFrequency = Number(
+        row.accumulatedPercentageFrequency.toFixed(2)
+      );
+    });
 
     return response.json({
       total: total,
