@@ -3,7 +3,14 @@ const QuickSort = require('../utils/quick-sort');
 
 module.exports = {
   async calculate(request, response) {
-    let { analyze, order, values, isContinue } = request.body;
+    let {
+      analyze,
+      order,
+      values,
+      isContinue,
+      separatingMeasure,
+      method,
+    } = request.body;
     const valoresOrdenados = values;
     QuickSort.quickSort(valoresOrdenados, (a, b) => a > b);
     if (analyze === 'discreteQuantitative') {
@@ -45,7 +52,7 @@ module.exports = {
     if (isContinue) {
       // Caso seja variável contínua:
       values = values.map((item) => Number(item));
-      values = values.sort((a, b) => a - b);
+      QuickSort.quickSort(values, (a, b) => a > b);
       let amplitude = values[values.length - 1] - values[0] + 1; // definindo a amplitude
       const k = parseInt(Math.sqrt(total)); // constante K
       const previousK = k - 1; // anterior de K
@@ -170,11 +177,14 @@ module.exports = {
     let media = '';
     let moda = [];
     let mediana = '';
+    let medidaSeparatriz = '';
+    let desvioPadrao = '';
+    let variancia = '';
 
     if (analyze === 'qualitative') {
       media = 'Não existe média para variáveis qualitativas.';
       let posModa = rows.map((row) => row.simpleFrequency);
-      posModa = posModa.sort((a, b) => a - b);
+      QuickSort.quickSort(posModa, (a, b) => a > b);
       posModa = posModa[posModa.length - 1];
       rows.map((row) => {
         if (row.simpleFrequency === posModa) {
@@ -187,6 +197,18 @@ module.exports = {
 
       const posMediana = total / 2;
       mediana = values[posMediana - 1];
+
+      const posSeparatriz = parseInt((separatingMeasure / 100) * total);
+      for (let i = 1; i <= values.length; i++) {
+        if (posSeparatriz === 0) {
+          medidaSeparatriz = values[i];
+          break;
+        }
+        if (i === posSeparatriz) {
+          medidaSeparatriz = values[i - 1];
+          break;
+        }
+      }
     }
 
     if (analyze === 'discreteQuantitative') {
@@ -202,7 +224,7 @@ module.exports = {
       );
       media = somaTotal / total;
       let posModa = rows.map((row) => row.simpleFrequency);
-      posModa = posModa.sort((a, b) => a - b);
+      QuickSort.quickSort(posModa, (a, b) => a > b);
       posModa = posModa[posModa.length - 1];
       rows.map((row) => {
         if (row.simpleFrequency === posModa) {
@@ -215,6 +237,33 @@ module.exports = {
 
       const posMediana = total / 2;
       mediana = valoresOrdenados[parseInt(posMediana) - 1];
+
+      const posSeparatriz = parseInt((separatingMeasure / 100) * total);
+      for (let i = 1; i <= values.length; i++) {
+        if (posSeparatriz === 0) {
+          medidaSeparatriz = values[i];
+          break;
+        }
+        if (i === posSeparatriz) {
+          medidaSeparatriz = values[i - 1];
+          break;
+        }
+      }
+
+      const somaDesvioPadrao = [];
+      for (let i = 0; i < xi.length; i++) {
+        somaDesvioPadrao.push(Number((xi[i] - media) ** 2 * fi[i]).toFixed(3));
+      }
+      const totalSoma = somaDesvioPadrao.reduce(
+        (totalSoma, item) => Number(totalSoma) + Number(item),
+        0
+      );
+      if (method === 'population') {
+        desvioPadrao = Number(Math.sqrt(totalSoma / total)).toFixed(2);
+      } else {
+        desvioPadrao = Number(Math.sqrt(totalSoma / (total - 1))).toFixed(2);
+      }
+      variancia = `${Number((desvioPadrao / media) * 100).toFixed(2)}%`;
     }
 
     if (isContinue) {
@@ -232,8 +281,14 @@ module.exports = {
         0
       );
       media = (somaTotal / total).toFixed(2);
+      const totalSoma = pontosMedios.reduce(
+        (totalSoma, item) => Number(totalSoma) + Number(item),
+        0
+      );
+      desvioPadrao = Number(Math.sqrt(totalSoma / total)).toFixed(2);
+      variancia = `${Number((desvioPadrao / media) * 100).toFixed(2)}%`;
       let posModa = rows.map((row) => row.simpleFrequency);
-      posModa = posModa.sort((a, b) => a - b);
+      QuickSort.quickSort(posModa, (a, b) => a > b);
       posModa = posModa[posModa.length - 1];
       rows.map((row) => {
         if (row.simpleFrequency === posModa) {
@@ -248,21 +303,21 @@ module.exports = {
       });
       const posMediana = parseInt(total / 2);
       const valorMediana = valoresOrdenados[posMediana - 1];
-      let menorValorReal;
-      let maiorValorReal;
+      let menorValorSeparatrizReal;
+      let maiorValorRealSeparatriz;
       let linhaMediana = rows.map((row) => {
-        let menorValor = row.variableName.split('-');
-        menorValor = menorValor[0];
-        let maiorValor = row.variableName.split('-');
-        maiorValor = maiorValor[1];
-        menorValor = Number(menorValor);
-        maiorValor = Number(maiorValor);
+        let menorValorSeparatriz = row.variableName.split('-');
+        menorValorSeparatriz = menorValorSeparatriz[0];
+        let maiorValorSeparatriz = row.variableName.split('-');
+        maiorValorSeparatriz = maiorValorSeparatriz[1];
+        menorValorSeparatriz = Number(menorValorSeparatriz);
+        maiorValorSeparatriz = Number(maiorValorSeparatriz);
         if (
-          Number(valorMediana) >= menorValor &&
-          Number(valorMediana) < maiorValor
+          Number(valorMediana) >= menorValorSeparatriz &&
+          Number(valorMediana) < maiorValorSeparatriz
         ) {
-          maiorValorReal = maiorValor;
-          menorValorReal = menorValor;
+          maiorValorRealSeparatriz = maiorValorSeparatriz;
+          menorValorSeparatrizReal = menorValorSeparatriz;
           return row; // Definição da linhas real mediana.
         }
       });
@@ -281,8 +336,49 @@ module.exports = {
       const fant = rows[posFant].accumulatedFrequency; // Frquencia acumulada anterior
       linhaMediana = linhaMediana.filter((item) => item); // Limpando o array.
       const fimd = linhaMediana[0].simpleFrequency; // Frquência FI linha mediana
-      const altura = maiorValorReal - menorValorReal; // Constante H
-      mediana = menorValorReal + ((posMediana - fant) / fimd) * altura;
+      const altura = maiorValorRealSeparatriz - menorValorSeparatrizReal; // Constante H
+      mediana =
+        menorValorSeparatrizReal + ((posMediana - fant) / fimd) * altura;
+
+      const posSeparatriz = (separatingMeasure / 100) * total;
+      const valorSeparatriz = valoresOrdenados[posSeparatriz - 1];
+      let linhaSeparatriz = rows.map((row) => {
+        let menorValorSeparatriz = row.variableName.split('-');
+        menorValorSeparatriz = menorValorSeparatriz[0];
+        let maiorValorSeparatriz = row.variableName.split('-');
+        maiorValorSeparatriz = maiorValorSeparatriz[1];
+        menorValorSeparatriz = Number(menorValorSeparatriz);
+        maiorValorSeparatriz = Number(maiorValorSeparatriz);
+        if (
+          Number(valorSeparatriz) >= menorValorSeparatriz &&
+          Number(valorSeparatriz) < maiorValorSeparatriz
+        ) {
+          maiorValorRealSeparatriz = maiorValorSeparatriz;
+          menorValorSeparatrizReal = menorValorSeparatriz;
+          return row; // Definição da linhas real mediana.
+        }
+      });
+      let posFantSeparatriz = '';
+      linhaSeparatriz = linhaSeparatriz.filter((item) => item); // Limpando o array, caso haja itens inválidos (undefined).
+      for (let i = 0; i < linhaSeparatriz.length; i++) {
+        if (linhaSeparatriz[i]) {
+          if (linhaSeparatriz.length === 1) {
+            posFantSeparatriz = i = 0;
+            break;
+          }
+          posFantSeparatriz = i - 1;
+          break;
+        }
+      }
+      const fantSeparatriz = rows[posFantSeparatriz].accumulatedFrequency; // Frquencia acumulada anterior
+      linhaSeparatriz = linhaSeparatriz.filter((item) => item); // Limpando o array.
+      const fimdSeparatriz = linhaSeparatriz[0].simpleFrequency; // Frquência FI linha mediana
+      const alturaSeparatriz =
+        maiorValorRealSeparatriz - menorValorSeparatrizReal; // Constante H
+      medidaSeparatriz = Number(
+        menorValorSeparatrizReal +
+          ((posSeparatriz - fantSeparatriz) / fimdSeparatriz) * alturaSeparatriz
+      ).toFixed(2);
     }
     if (mediana / 1) {
       // Verificação se é um numero que possa ser convertido
@@ -296,16 +392,16 @@ module.exports = {
     for (let i = 0; i < moda.length; i++) {
       // Resposta personalizada da moda.
       if (moda.length === 1) {
-        stringModa = moda[i];
+        stringModa = moda[i]; // Caso seja somente somente uma moda
         break;
       }
-      stringModa = `${stringModa + moda[i] + ', '}`;
+      stringModa = `${stringModa + moda[i] + ', '}`; // Concatenando modas
     }
 
     rows.forEach((row) => {
       row.relativeFrequency = Number(row.relativeFrequency.toFixed(2));
       row.accumulatedPercentageFrequency = Number(
-        row.accumulatedPercentageFrequency.toFixed(2)
+        row.accumulatedPercentageFrequency.toFixed(2) // Arredondamento
       );
     });
 
@@ -315,6 +411,9 @@ module.exports = {
       media,
       moda: stringModa,
       mediana,
+      medidaSeparatriz,
+      variancia,
+      desvioPadrao,
     });
   },
   async ping(req, res) {
