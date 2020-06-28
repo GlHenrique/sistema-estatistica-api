@@ -1,5 +1,7 @@
 const Helper = require('../helpers/accumulator');
 const QuickSort = require('../utils/quick-sort');
+const Fatorial = require('../utils/fatorial');
+const TableZ = require('../helpers/tableZ');
 
 module.exports = {
   async calculate(request, response) {
@@ -414,6 +416,114 @@ module.exports = {
       medidaSeparatriz,
       variancia,
       desvioPadrao,
+    });
+  },
+  async calculateProbability(request, response) {
+    const { method } = request.body;
+    let probabilidade;
+    if (method === 'binomial') {
+      const { sampleSize, successRate, failRate, eventSelected } = request.body;
+      const numberSampleSize = Number(sampleSize);
+      const numberSuccessRate = Number(successRate);
+      const numberFailRate = Number(failRate);
+      const numberEventSelected = Number(eventSelected);
+      const fatN = Fatorial.fatorial(numberSampleSize);
+      const subtration = numberSampleSize - eventSelected;
+      const combinatoryAnalisys =
+        fatN /
+        (Fatorial.fatorial(subtration) *
+          Fatorial.fatorial(numberEventSelected));
+      probabilidade =
+        combinatoryAnalisys *
+        Math.pow(numberSuccessRate, numberEventSelected) *
+        Math.pow(numberFailRate, numberSampleSize - numberEventSelected);
+      probabilidade = Number(probabilidade * 100).toFixed(2);
+      probabilidade = Number(probabilidade);
+    }
+    if (method === 'normal') {
+      const {
+        moreThan,
+        lessThan,
+        betweenA,
+        betweenB,
+        media,
+        desvioPadrao,
+      } = request.body;
+      if (moreThan) {
+        console.log('maior que');
+        const scoreZ = String(
+          Math.abs(
+            Number((moreThan - media) / desvioPadrao).toFixed(2)
+          ).toPrecision()
+        );
+        const verticalAxie = scoreZ.substr(0, 3);
+        const horizontalAxie = scoreZ[scoreZ.length - 1];
+        const result = TableZ.table[verticalAxie][horizontalAxie];
+        probabilidade = (0.5 - result) * 100;
+        if (moreThan < media) {
+          probabilidade = (0.5 + result) * 100;
+        }
+        probabilidade = Number(probabilidade.toFixed(2));
+      }
+      if (lessThan) {
+        console.log('menor que');
+        const scoreZ = String(
+          Math.abs(
+            Number((lessThan - media) / desvioPadrao).toFixed(2)
+          ).toPrecision()
+        );
+        const verticalAxie = scoreZ.substr(0, 3);
+        const horizontalAxie = scoreZ[scoreZ.length - 1];
+        const result = TableZ.table[verticalAxie][horizontalAxie];
+        probabilidade = (0.5 - result) * 100;
+        probabilidade = Number(probabilidade.toFixed(2));
+        console.log(probabilidade);
+      }
+      if (betweenA && betweenB) {
+        console.log('entre');
+        let resultA;
+        let resultB;
+        if (betweenA === media) {
+          resultA = 0;
+        } else {
+          const scoreZA = String(
+            Math.abs(
+              Number((betweenA - media) / desvioPadrao).toFixed(2)
+            ).toPrecision()
+          );
+          const verticalAxieA = scoreZA.substr(0, 3);
+          const horizontalAxieA = scoreZA[scoreZA.length - 1];
+
+          resultA = TableZ.table[verticalAxieA][horizontalAxieA];
+          console.log(resultA);
+        }
+
+        if (betweenB === media) {
+          resultB = 0;
+        } else {
+          const scoreZB = String(
+            Math.abs(
+              Number((betweenB - media) / desvioPadrao).toFixed(2)
+            ).toPrecision()
+          );
+          const verticalAxieB = scoreZB.substr(0, 3);
+          const horizontalAxieB = scoreZB[scoreZB.length - 1];
+
+          resultB = TableZ.table[verticalAxieB][horizontalAxieB];
+        }
+
+        probabilidade = (resultA + resultB) * 100;
+        probabilidade = Number(probabilidade.toFixed(2));
+        if (betweenA > media && betweenB > media) {
+          if (betweenB > betweenA) {
+            probabilidade = (resultB - resultA) * 100;
+            probabilidade = Number(probabilidade.toFixed(2));
+          }
+        }
+      }
+    }
+    return response.json({
+      probabilidade,
     });
   },
   async ping(req, res) {
