@@ -421,6 +421,9 @@ module.exports = {
   async calculateProbability(request, response) {
     const { method } = request.body;
     let probabilidade;
+    let media;
+    let desvioPadrao;
+    let coeficienteVariacao;
     if (method === 'binomial') {
       const { sampleSize, successRate, failRate, eventSelected } = request.body;
       const numberSampleSize = Number(sampleSize);
@@ -522,8 +525,50 @@ module.exports = {
         }
       }
     }
+    if (method === 'uniforme') {
+      const {
+        valueA,
+        valueB,
+        moreThan,
+        lessThan,
+        betweenA,
+        betweenB,
+      } = request.body;
+      const numberValueA = Number(valueA);
+      const numberValueB = Number(valueB);
+      const numberMoreThan = Number(moreThan);
+      const numberLessThan = Number(lessThan);
+      const numberBetweenA = Number(betweenA);
+      const numberBetweenB = Number(betweenB);
+      media = (numberValueA + numberValueB) / 2;
+      desvioPadrao = Math.sqrt(Math.pow(numberValueB - numberValueA, 2) / 12);
+      coeficienteVariacao = (desvioPadrao / media) * 100;
+      if (moreThan) {
+        probabilidade =
+          (1 / (numberValueB - numberValueA)) *
+          (numberValueB - numberMoreThan) *
+          100;
+      }
+      if (betweenA && betweenB) {
+        const intervalo = numberBetweenB - numberBetweenA;
+
+        probabilidade = (1 / (numberValueB - numberValueA)) * intervalo * 100;
+      }
+      if (lessThan) {
+        const intervalo = numberLessThan - numberValueA;
+        probabilidade = (1 / (numberValueB - numberValueA)) * intervalo * 100;
+      }
+
+      probabilidade = Number(probabilidade.toFixed(2));
+      desvioPadrao = Number(desvioPadrao.toFixed(2));
+      media = Number(media.toFixed(2));
+      coeficienteVariacao = Number(coeficienteVariacao.toFixed(2));
+    }
     return response.json({
       probabilidade,
+      media,
+      desvioPadrao,
+      coeficienteVariacao,
     });
   },
   async ping(req, res) {
