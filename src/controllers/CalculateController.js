@@ -622,22 +622,11 @@ module.exports = {
     const quadradoSomatorioX = Math.pow(somatorioX, 2);
     const quadradoSomatorioY = Math.pow(somatorioY, 2);
 
-    // console.log(totalN);
-    // console.log(multiplicacaoXY);
-    // console.log(somatorioX);
-    // console.log(somatorioY);
-    // console.log(quadradoX);
-    // console.log(quadradoY);
-    // console.log(quadradoSomatorioX);
-    // console.log(quadradoSomatorioY);
-    // console.log('----------------');
-
     correlacaoLinear =
       (totalN * multiplicacaoXY - somatorioX * somatorioY) /
       (Math.sqrt(totalN * quadradoX - quadradoSomatorioX) *
         Math.sqrt(totalN * quadradoY - quadradoSomatorioY));
     correlacaoLinear = Number(Math.abs(ajuste(correlacaoLinear, 2) * 100));
-    console.log(correlacaoLinear);
     if (correlacaoLinear <= 33.33) {
       correlacaoLinear = `${correlacaoLinear}% (Fraca)`;
     } else if (correlacaoLinear > 33.33 && correlacaoLinear <= 66.66) {
