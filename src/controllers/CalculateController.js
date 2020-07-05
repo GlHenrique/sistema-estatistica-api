@@ -571,6 +571,89 @@ module.exports = {
       coeficienteVariacao,
     });
   },
+  async calculateCorrelation(request, response) {
+    const { xValues, yValues } = request.body;
+    let regressaoLinear = '';
+    let correlacaoLinear = '';
+    const numberXValues = xValues.map((item) => Number(item));
+    const numberYValues = yValues.map((item) => Number(item));
+    if (xValues.length !== yValues.length) {
+      return response.status(400).send(new Error('Valores inválidos'));
+    }
+    const totalN = numberXValues.length; // Poderia ser numberYValues também.
+    const somatorioX = numberXValues.reduce(
+      (somatorioX, item) => somatorioX + item,
+      0
+    );
+    const somatorioY = numberYValues.reduce(
+      (somatorioY, item) => somatorioY + item,
+      0
+    );
+
+    const multiplicacaoXY = numberXValues
+      .map((item, index) => item * numberYValues[index])
+      .reduce((multiplicacaoXY, item) => multiplicacaoXY + item, 0);
+
+    const quadradoX = numberXValues
+      .map((item) => Math.pow(item, 2))
+      .reduce((quadradoX, item) => quadradoX + item);
+
+    const quadradoY = numberYValues
+      .map((item) => Math.pow(item, 2))
+      .reduce((quadradoY, item) => quadradoY + item);
+
+    function ajuste(nr, casas) {
+      const og = Math.pow(10, casas);
+      return Math.floor(nr * og) / og;
+    }
+
+    const alpha = Number(
+      (totalN * multiplicacaoXY - somatorioX * somatorioY) /
+        (totalN * quadradoX - Math.pow(somatorioX, 2))
+    );
+    const mediaX = somatorioX / totalN;
+    const mediaY = somatorioY / totalN;
+    const beta = Number(mediaY - alpha * mediaX);
+
+    regressaoLinear = `y = ${ajuste(alpha, 2)}.x ${ajuste(beta, 2)}`;
+
+    // Correlação:
+
+    const quadradoSomatorioX = Math.pow(somatorioX, 2);
+    const quadradoSomatorioY = Math.pow(somatorioY, 2);
+
+    // console.log(totalN);
+    // console.log(multiplicacaoXY);
+    // console.log(somatorioX);
+    // console.log(somatorioY);
+    // console.log(quadradoX);
+    // console.log(quadradoY);
+    // console.log(quadradoSomatorioX);
+    // console.log(quadradoSomatorioY);
+    // console.log('----------------');
+
+    correlacaoLinear =
+      (totalN * multiplicacaoXY - somatorioX * somatorioY) /
+      (Math.sqrt(totalN * quadradoX - quadradoSomatorioX) *
+        Math.sqrt(totalN * quadradoY - quadradoSomatorioY));
+    correlacaoLinear = Number(Math.abs(ajuste(correlacaoLinear, 2) * 100));
+    console.log(correlacaoLinear);
+    if (correlacaoLinear <= 33.33) {
+      correlacaoLinear = `${correlacaoLinear}% (Fraca)`;
+    } else if (correlacaoLinear > 33.33 && correlacaoLinear <= 66.66) {
+      correlacaoLinear = `${correlacaoLinear}% (Moderada)`;
+    } else if (correlacaoLinear > 66.66 && correlacaoLinear <= 99.99) {
+      correlacaoLinear = `${correlacaoLinear}% (Forte)`;
+    } else {
+      correlacaoLinear = `${correlacaoLinear}% (Perfeita)`;
+    }
+
+    return response.json({
+      teste: 'ok',
+      regressaoLinear,
+      correlacaoLinear,
+    });
+  },
   async ping(req, res) {
     return res.json('API OK');
   },
