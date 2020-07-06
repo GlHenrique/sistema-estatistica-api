@@ -3,7 +3,7 @@ const CalculateController = require('./controllers/CalculateController');
 
 const routes = express.Router();
 
-routes.post('/calculate', CalculateController.calculate);
+routes.post('/calculate', CalculateController.calculateDescritive);
 routes.post('/probability', CalculateController.calculateProbability);
 routes.post('/correlation', CalculateController.calculateCorrelation);
 routes.get('/ping', CalculateController.ping);

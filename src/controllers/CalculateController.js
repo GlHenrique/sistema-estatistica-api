@@ -4,7 +4,7 @@ const Fatorial = require('../utils/fatorial');
 const TableZ = require('../helpers/tableZ');
 
 module.exports = {
-  async calculate(request, response) {
+  async calculateDescritive(request, response) {
     let {
       analyze,
       order,
@@ -453,7 +453,6 @@ module.exports = {
         desvioPadrao,
       } = request.body;
       if (moreThan) {
-        console.log('maior que');
         const scoreZ = String(
           Math.abs(
             Number((moreThan - media) / desvioPadrao).toFixed(2)
@@ -469,7 +468,6 @@ module.exports = {
         probabilidade = Number(probabilidade.toFixed(2));
       }
       if (lessThan) {
-        console.log('menor que');
         const scoreZ = String(
           Math.abs(
             Number((lessThan - media) / desvioPadrao).toFixed(2)
@@ -480,10 +478,8 @@ module.exports = {
         const result = TableZ.table[verticalAxie][horizontalAxie];
         probabilidade = (0.5 - result) * 100;
         probabilidade = Number(probabilidade.toFixed(2));
-        console.log(probabilidade);
       }
       if (betweenA && betweenB) {
-        console.log('entre');
         let resultA;
         let resultB;
         if (betweenA === media) {
@@ -498,7 +494,6 @@ module.exports = {
           const horizontalAxieA = scoreZA[scoreZA.length - 1];
 
           resultA = TableZ.table[verticalAxieA][horizontalAxieA];
-          console.log(resultA);
         }
 
         if (betweenB === media) {
@@ -577,8 +572,13 @@ module.exports = {
     let correlacaoLinear = '';
     const numberXValues = xValues.map((item) => Number(item));
     const numberYValues = yValues.map((item) => Number(item));
+    if (numberXValues.includes(NaN) || numberYValues.includes(NaN)) {
+      return response.status(400).json({ error: 'Valores inválidos' });
+    }
     if (xValues.length !== yValues.length) {
-      return response.status(400).send(new Error('Valores inválidos'));
+      return response.status(400).json({
+        error: 'Os valores devem possuir a mesma quantidade de elementos',
+      });
     }
     const totalN = numberXValues.length; // Poderia ser numberYValues também.
     const somatorioX = numberXValues.reduce(
@@ -615,7 +615,9 @@ module.exports = {
     const mediaY = somatorioY / totalN;
     const beta = Number(mediaY - alpha * mediaX);
 
-    regressaoLinear = `y = ${ajuste(alpha, 2)}.x ${ajuste(beta, 2)}`;
+    regressaoLinear = `y = ${ajuste(alpha, 2)}x ${
+      ajuste(beta, 2) > 0 ? `+ ${ajuste(beta, 2)}` : `${ajuste(beta, 2)}`
+    }`;
 
     // Correlação:
 
@@ -637,10 +639,18 @@ module.exports = {
       correlacaoLinear = `${correlacaoLinear}% (Perfeita)`;
     }
 
+    const dataChart = [];
+    for (let i = 0; i < numberXValues.length; i++) {
+      dataChart[i] = {
+        x: numberXValues[i],
+        y: numberYValues[i],
+      };
+    }
+
     return response.json({
-      teste: 'ok',
       regressaoLinear,
       correlacaoLinear,
+      dataChart,
     });
   },
   async ping(req, res) {

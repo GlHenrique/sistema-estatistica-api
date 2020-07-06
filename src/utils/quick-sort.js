@@ -45,8 +45,3 @@ module.exports = {
     }
   },
 };
-
-// console.time('quick');
-// quickSort(nomes, (a, b) => a > b);
-// console.log(nomes);
-// console.timeEnd('quick');
